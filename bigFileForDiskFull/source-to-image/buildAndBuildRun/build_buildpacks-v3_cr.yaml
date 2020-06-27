@@ -1,0 +1,19 @@
+---
+apiVersion: build.dev/v1alpha1
+kind: Build
+metadata:
+  name: buildpack-go-build
+  namespace: zoe-test
+  annotations:
+    build.build.dev/build-run-deletion: "false"
+spec:
+  source:
+    url: https://github.com/xiujuan95/coligo-samples-study
+    contextDir: bigFileForDiskFull/source-to-image/goLang
+  strategy:
+    name: buildpacks-v3
+    kind: ClusterBuildStrategy
+  output:
+    image: us.icr.io/zoe_namespace/go-sample-large
+    credentials:
+      name: icr-knbuild-zoe

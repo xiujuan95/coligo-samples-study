@@ -1,0 +1,19 @@
+apiVersion: coligo.cloud.ibm.com/v1alpha1
+kind: JobRun
+metadata:
+  name: basic-jobrun
+  namespace: zoe-test
+spec:
+  jobDefinitionSpec:
+    containers:
+      - name: hello
+        image: busybox
+        args:
+          - /bin/sh
+          - -c
+          - dd if=/dev/zero of=bigFile.txt bs=1M count=102400
+          - sleep 5000000s; echo Hello $JOB_INDEX
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"

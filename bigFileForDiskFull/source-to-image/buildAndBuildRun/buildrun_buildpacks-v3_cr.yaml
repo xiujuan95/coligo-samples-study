@@ -1,0 +1,12 @@
+---
+apiVersion: build.dev/v1alpha1
+kind: BuildRun
+metadata:
+  name: buildpack-go-buildrun
+  namespace: zoe-test
+spec:
+  buildRef:
+    name: buildpack-go-build
+  serviceAccount:
+    name: pipeline
+    generate: true

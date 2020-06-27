@@ -1,0 +1,79 @@
+---
+apiVersion: build.dev/v1alpha1
+kind: ClusterBuildStrategy
+metadata:
+  name: buildpacks-v3
+spec:
+  buildSteps:
+    - name: step-prepare
+      image: gcr.io/paketo-buildpacks/builder:latest
+      securityContext:
+        runAsUser: 0
+        capabilities:
+          add: ["CHOWN"]
+      command:
+        - /bin/bash
+      args:
+        - -c
+        - >
+          chown -R "1000:1000" "/workspace/source" &&
+          chown -R "1000:1000" "/tekton/home"
+    - name: step-detect
+      image: gcr.io/paketo-buildpacks/builder:latest
+      securityContext:
+        runAsUser: 1000
+      command:
+        - /cnb/lifecycle/detector
+      args:
+        - -app=/workspace/source/$(build.source.contextDir)
+        - -group=/layers/group.toml
+        - -plan=/layers/plan.toml
+      volumeMounts:
+        - name: layers-dir
+          mountPath: /layers
+    - name: step-restore
+      image: gcr.io/paketo-buildpacks/builder:latest
+      securityContext:
+        runAsUser: 1000
+      command:
+        - /cnb/lifecycle/restorer
+      args:
+        - -layers=/layers
+        - -cache-dir=/cache
+        - -group=/layers/group.toml
+      volumeMounts:
+        - name: cache-dir
+          mountPath: /cache
+        - name: layers-dir
+          mountPath: /layers
+    - name: step-build
+      image: gcr.io/paketo-buildpacks/builder:latest
+      securityContext:
+        runAsUser: 1000
+      command:
+        - /cnb/lifecycle/builder
+      args:
+        - -app=/workspace/source/$(build.source.contextDir)
+        - -layers=/layers
+        - -group=/layers/group.toml
+        - -plan=/layers/plan.toml
+      volumeMounts:
+        - name: layers-dir
+          mountPath: /layers
+    - name: step-export
+      image: gcr.io/paketo-buildpacks/builder:latest
+      securityContext:
+        runAsUser: 1000
+      command:
+        - /cnb/lifecycle/exporter
+      args:
+        - -app=/workspace/source/$(build.source.contextDir)
+        - -layers=/layers
+        - -cache-dir=/cache
+        - -group=/layers/group.toml
+        - $(build.output.image)
+      volumeMounts:
+        - name: cache-dir
+          mountPath: /cache
+        - name: layers-dir
+          mountPath: /layers

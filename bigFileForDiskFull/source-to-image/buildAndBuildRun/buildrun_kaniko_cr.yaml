@@ -1,0 +1,11 @@
+---
+apiVersion: build.dev/v1alpha1
+kind: BuildRun
+metadata:
+  name: kaniko-golang-buildrun
+  namespace: zoe-test
+spec:
+  buildRef:
+    name: kaniko-golang-build
+  serviceAccount:
+    generate: true
