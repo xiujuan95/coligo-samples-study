@@ -1,0 +1,25 @@
+  root@jordan-0:~/gopath/src/github.ibm.com/coligo/source-to-image/test# cat docker-push.yaml
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: docker-push
+    namespace: zoe-test
+  spec:
+    selector:
+      matchLabels:
+        app: docker-push
+    replicas: 3
+    template:
+      metadata:
+        name: docker-push
+        labels:
+          app: docker-push
+      spec:
+        containers:
+          - name: docker-commands
+            image: us.icr.io/zoe_namespace/dockerpush
+            env:
+              - name: DOCKERCONFIG
+                value: '{"auths":{"us.icr.io":{"username":"iamapikey","password":"${password}","email":"me@here.com","auth":"${auth}"}}}'
+            command: ["/bin/sh"]
+            args: ["-c", "mkdir ~/.docker; echo ${DOCKERCONFIG} > ~/.docker/config.json; /home/nonroot/go/bin/crane pull us.icr.io/zoe_namespace/docker /tmp/dockerpush.tar; time /home/nonroot/go/bin/crane push /tmp/dockerpush.tar us.icr.io/source_to_image_test/dockerpush"]
